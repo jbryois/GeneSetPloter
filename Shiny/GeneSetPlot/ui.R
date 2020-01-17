@@ -95,7 +95,7 @@ ui <- fluidPage(
                                      h5(a("GTEx v7",href="https://www.nature.com/articles/nature24277")),
                                      h5(a("GTEx v8",href="https://www.biorxiv.org/content/10.1101/787903v1")),
                                      h3("Code:"),
-                                     h5(a("Github",href="https://github.com/jbryois/"))
+                                     h5(a("Github",href="https://github.com/jbryois/GeneSetPloter"))
                                  )
                         )
             ),
