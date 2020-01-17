@@ -1,6 +1,6 @@
 # You can run the application by clicking 'Run App' above (RStudio)
 # Author: Julien Bryois
-# Date: 18.11.2019
+# Date: 17.1.2020
 
 library(shiny)
 library(dplyr)
@@ -46,12 +46,12 @@ shinyServer(function(input, output) {
         d <- data.table::fread(inFile,data.table=FALSE)
     }) 
     
-    # Plot regression results
-    output$plot <- renderPlot({
-        plot_gene_set(dataset(),gene_list(),input$num)
+    # Plot Heatmap
+    output$heatmap <- renderPlot({
+        plot_heatmap(dataset(),gene_list())
     }, height = 600)
     
-    #Download plot regression
+    #Download plot
     output$save_plot <- downloadHandler(
         filename = function() {
             datasetname <- parse_dataset_name(input$select)
@@ -60,6 +60,17 @@ shinyServer(function(input, output) {
         content = function(file) {
             p <- plot_gene_set(dataset(),gene_list(),input$num)
             ggsave(file, plot = p, device = "pdf", width=input$width,height=input$height,limitsize = FALSE)
+        }
+    )
+    #Download heatmap
+    output$save_heatmap <- downloadHandler(
+        filename = function() {
+            datasetname <- parse_dataset_name(input$select)
+            paste(input$file1,datasetname,"heatmap.pdf",sep = ".")
+        },
+        content = function(file) {
+            p <- plot_heatmap(dataset(),gene_list())
+            ggsave(file, plot = p, device = "pdf",limitsize = FALSE)
         }
     )
 })

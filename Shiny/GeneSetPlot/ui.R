@@ -2,7 +2,7 @@
 # run the application by clicking 'Run App' above.
 
 # Author: Julien Bryois
-# Date: 17.1.2019
+# Date: 17.1.2020
 
 library(shiny)
 library(shinythemes)
@@ -29,6 +29,7 @@ ui <- fluidPage(
             br(),
             h5("Once the file is loaded, select the number of cell types to display, the width and height, and click save!"),
             h5("The figure will then be downloaded on your computer."),
+            
             # Input: Select type of delimiter for file to be uploaded
             radioButtons('sep', 'Separator',
                          c(Tab='\t',
@@ -37,6 +38,7 @@ ui <- fluidPage(
                            xls='xls',
                            xlsx='xlsx'),
                          '\t'),
+            
             # Input: Check whether the file has a header or not
             checkboxInput('header', 'Header', TRUE),
             
@@ -58,9 +60,6 @@ ui <- fluidPage(
                                        "GTex v7" = "Data/GTEx.v7.all.norm.txt.gz", 
                                        "GTex v8" = "Data/GTEx.v8.all.norm.txt.gz"),
                         selected = "Data/Zeisel.lvl4.1to1.norm.txt.gz"),
-            
-            #sliderInput("slider", label = h3("Genes to display"), min = 0, 
-            #            max = 1000, value = c(1, 9))
         ),
         
         # Main panel for displaying outputs ----
@@ -68,6 +67,13 @@ ui <- fluidPage(
             
             # Output: Tabset w/ plot ----
             tabsetPanel(type = "tabs",
+                        tabPanel("Heatmap", fluid = TRUE,
+                                 mainPanel(
+                                     h5("Heatmap of the expression of each gene in the gene set in all cell types (z-scaling per gene)"),
+                                     downloadButton('save_heatmap',label = "Save Plot"),
+                                     plotOutput("heatmap")
+                                 ), 
+                        ),
                         tabPanel("Gene Set Plot", fluid = TRUE,
                                 mainPanel(
                                     h5("Plots expression of each gene in the gene set in the top N cell types/tissues"),
@@ -80,9 +86,7 @@ ui <- fluidPage(
                                     column(4,
                                            numericInput("height", label = h3("Plot Height"), value = 40),
                                     ),
-                                    downloadButton('save_plot',label = "Save Plot"),
-                                    
-                                    #plotOutput("plot")
+                                    downloadButton('save_plot',label = "Save Plot")
                                 ), 
                         ),
                         tabPanel("References", fluid = TRUE,
