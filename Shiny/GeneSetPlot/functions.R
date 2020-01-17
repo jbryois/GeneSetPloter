@@ -58,13 +58,27 @@ plot_heatmap <- function(d,pathway){
     d <- select(d,-Gene) %>% t(.)
     colnames(d) <- genes
     
+    fontsize_row <- 10
+    fontsize_col <- 10
+    
     if (nrow(d)<=50){
-        return(pheatmap::pheatmap(d,scale = "column"))
+        fontsize_row <- 10
     }
     if (nrow(d)>50 & nrow(d) <100){
-        return(pheatmap::pheatmap(d,scale = "column",fontsize=5))
+        fontsize_row <- 5
     }
     if (nrow(d)>=100){
-        return(pheatmap::pheatmap(d,scale = "column",fontsize=3))
+        fontsize_row <- 3
     }
+    if (ncol(d)<=50){
+        fontsize_col <- 10
+    }
+    if (ncol(d)>50 & ncol(d) <100){
+        fontsize_col <- 5
+    }
+    if (ncol(d)>=100){
+        fontsize_col <- 3
+    }
+    return(pheatmap::pheatmap(d,scale = "column",fontsize_row=fontsize_row,fontsize_col=fontsize_col))
+    
 }
