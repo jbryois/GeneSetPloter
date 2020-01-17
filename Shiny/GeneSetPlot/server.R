@@ -69,8 +69,9 @@ shinyServer(function(input, output) {
             paste(input$file1,datasetname,"heatmap.pdf",sep = ".")
         },
         content = function(file) {
-            p <- plot_heatmap(dataset(),gene_list())
-            ggsave(file, plot = p, device = "pdf",limitsize = FALSE)
+            pdf(file,height=12,width=16)
+            grid::grid.draw(plot_heatmap(dataset(),gene_list())$gtable)
+            dev.off()
         }
     )
 })
