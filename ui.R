@@ -70,6 +70,12 @@ ui <- fluidPage(
                         tabPanel("Heatmap", fluid = TRUE,
                                  mainPanel(
                                      h5("Heatmap of the expression of each gene in the gene set in all cell types (z-scaling per gene)"),
+                                     column(4,
+                                            numericInput("width_hm", label = h3("Plot Width"), value = 16),
+                                     ),
+                                     column(4,
+                                            numericInput("height_hm", label = h3("Plot Height"), value = 10),
+                                     ),
                                      downloadButton('save_heatmap',label = "Save Plot"),
                                      plotOutput("heatmap")
                                  ), 
