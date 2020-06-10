@@ -1,0 +1,181 @@
+---
+title: "gene_set_expression_check"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+# Exons
+```{r,eval=FALSE}
+file_name='../../00_Raw/MTG/human_MTG_gene_expression_matrices_2018-06-14/human_MTG_2018-06-14_exon-matrix.csv'
+sample='../../00_Raw/MTG/human_MTG_gene_expression_matrices_2018-06-14/human_MTG_2018-06-14_samples-columns.csv'
+genes='../../00_Raw/MTG/human_MTG_gene_expression_matrices_2018-06-14/human_MTG_2018-06-14_genes-rows.csv'
+```
+
+```{r,eval=FALSE}
+exp <- read_csv(file_name)
+```
+
+```{r,eval=FALSE}
+exp <- gather(exp, key= sample,value=exp,-X1)
+```
+
+```{r,eval=FALSE}
+samp <- read_csv(sample) %>% select(sample_name,cluster) %>% rename(sample=sample_name)
+```
+
+```{r,eval=FALSE}
+all(samp$sample%in%exp$sample)
+```
+
+```{r,eval=FALSE}
+exp <- left_join(exp,samp,by='sample') %>% select(-sample)
+```
+
+```{r,eval=FALSE}
+exp <- exp %>% group_by(X1,cluster) %>% summarise(exp_sum=sum(exp)) %>% rename(entrez_id=X1)
+```
+
+```{r,eval=FALSE}
+gen <- read_csv(genes) %>% select(gene,entrez_id) 
+```
+```{r,eval=FALSE}
+exon <- exp %>% left_join(.,gen,by='entrez_id')
+rm(exp)
+```
+
+```{r,eval=FALSE}
+write_csv(exon,'../../01_Processed/mtg_exons.sum.txt')
+rm(exon)
+```
+
+# Introns
+
+```{r,eval=FALSE}
+file_name='../../00_Raw/MTG/human_MTG_gene_expression_matrices_2018-06-14/human_MTG_2018-06-14_intron-matrix.csv'
+```
+
+```{r,eval=FALSE}
+exp <- left_join(exp,samp,by='sample') %>% select(-sample)
+```
+
+```{r,eval=FALSE}
+exp <- exp %>% group_by(X1,cluster) %>% summarise(exp_sum=sum(exp)) %>% rename(entrez_id=X1)
+```
+
+
+```{r,eval=FALSE}
+exp <- read_csv(file_name)
+```
+
+```{r,eval=FALSE}
+exp <- gather(exp, key= sample,value=exp,-X1)
+```
+
+```{r,eval=FALSE}
+intron <- exp %>% left_join(.,gen,by='entrez_id')
+rm(exp)
+```
+
+```{r,eval=FALSE}
+write_csv(intron,'../../01_Processed/mtg_introns.sum.txt')
+rm(intron)
+```
+
+
+# Load 
+
+```{r}
+ex <- read_csv('../../01_Processed/mtg_exons.sum.txt')
+int <- read_csv('../../01_Processed/mtg_introns.sum.txt')
+```
+
+```{r}
+d <- rbind(ex,int)
+```
+
+```{r}
+d <- d %>% group_by(cluster,entrez_id) %>% summarise(sum_exp=sum(exp_sum))
+```
+
+```{r}
+d %>% group_by(cluster) %>% summarise(sum_counts = sum(sum_exp)) %>% arrange(sum_counts)
+```
+
+### Scale to 10k molecules
+
+Each cell type is scaled to the same total number of molecules. 
+
+```{R, rm lowQ 34,message=F}
+d <- d %>% group_by(cluster) %>% mutate(Expr_sum_mean_scaled10k=sum_exp*10000/sum(sum_exp))
+#exp <- exp %>% group_by(Lvl5) %>% mutate(Expr_sum_mean_scaled10k_log2=log2(Expr_sum_mean_scaled10k+1))
+```
+
+### Remove genes not expressed in any tissues
+
+```{r}
+g2keep <- d %>% group_by(entrez_id) %>% summarise(sum_exp_all=sum(sum_exp)) %>% filter(sum_exp_all>0)
+d <- filter(d,entrez_id%in%g2keep$entrez_id)
+```
+
+```{r}
+d <- d %>% group_by(entrez_id) %>% mutate(spe_10k=Expr_sum_mean_scaled10k/sum(Expr_sum_mean_scaled10k))
+```
+
+# Add ENTREZ ID
+
+```{R,message=FALSE}
+entrez_ensembl <- AnnotationDbi::toTable(org.Hs.eg.db::org.Hs.egENSEMBL)
+entrez_symbol <- AnnotationDbi::toTable(org.Hs.eg.db::org.Hs.egSYMBOL)
+entrez_ensembl <- inner_join(entrez_ensembl,entrez_symbol)
+```
+
+Only keep genes with a unique entrez and ensembl id.
+
+```{r,message=FALSE}
+entrez_ensembl_unique_genes_entrez <- entrez_ensembl %>% count(gene_id) %>% filter(n==1)
+entrez_ensembl_unique_genes_ens <- entrez_ensembl %>% count(ensembl_id) %>% filter(n==1)
+entrez_ensembl_unique_genes_symbol <- entrez_ensembl %>% count(symbol) %>% filter(n==1)
+
+entrez_ensembl <- filter(entrez_ensembl,gene_id%in%entrez_ensembl_unique_genes_entrez$gene_id & ensembl_id %in% entrez_ensembl_unique_genes_ens$ensembl_id & symbol %in% entrez_ensembl_unique_genes_symbol$symbol)
+colnames(entrez_ensembl) <- c("entrez_id","gene_id","Gene")
+```
+
+```{r}
+d <- d %>% mutate(entrez_id=as.character(entrez_id))
+```
+
+
+```{r}
+d <- inner_join(d,entrez_ensembl,by="entrez_id")
+```
+
+```{r}
+d <- rename(d,Lvl5=cluster)
+```
+
+
+### Write
+
+```{r}
+select(d,Gene,gene_id,entrez_id,Lvl5,Expr_sum_mean_scaled10k) %>% 
+  spread(Lvl5,Expr_sum_mean_scaled10k) %>% 
+  write_tsv(gzfile("../../Data/AB_mtg2018.norm.txt.gz"))
+```
+
+```{r}
+select(d,Gene,gene_id,entrez_id,Lvl5,spe_10k) %>% 
+  spread(Lvl5,spe_10k) %>% 
+  write_tsv(gzfile("../../../BrainRich2/Data/AB_mtg2018.norm.txt.gz"))
+```
+
+```{r}
+#select(exp,Gene,gene_id,entrez_id,Lvl5,Expr_sum_mean_scaled10k_log2) %>% 
+#  spread(Lvl5,Expr_sum_mean_scaled10k_log2) %>% 
+#  write_tsv(gzfile("../../Data/AB_human_m1_10x.log2.norm.txt.gz"))
+```
