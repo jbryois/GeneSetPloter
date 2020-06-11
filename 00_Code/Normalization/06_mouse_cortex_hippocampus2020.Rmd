@@ -1,0 +1,104 @@
+---
+title: "gene_set_expression_check"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+file_name='../../01_Processed/mouse_whole_cortex_hippocampus_2020.csv'
+```
+
+```{r}
+exp <- read_csv(file_name)
+```
+
+```{r}
+exp <- gather(exp,key = Lvl5,value=counts,-Gene)
+```
+
+```{r}
+exp %>% group_by(Lvl5) %>% summarise(sum_counts = sum(counts)) %>% arrange(sum_counts)
+#14 million to 9 billion
+```
+
+### Scale to 10k molecules
+
+Each cell type is scaled to the same total number of molecules. 
+
+```{R, rm lowQ 34,message=F}
+exp <- exp %>% group_by(Lvl5) %>% mutate(Expr_sum_mean_scaled10k=counts*10000/sum(counts))
+#exp <- exp %>% group_by(Lvl5) %>% mutate(Expr_sum_mean_scaled10k_log2=log2(Expr_sum_mean_scaled10k+1))
+```
+
+### Remove genes not expressed in any tissues
+
+```{r}
+g2keep <- exp %>% group_by(Gene) %>% summarise(sum_exp=sum(counts)) %>% filter(sum_exp>0)
+exp <- filter(exp,Gene%in%g2keep$Gene)
+```
+
+```{r}
+exp <- exp %>% group_by(Gene) %>% mutate(spe_10k=Expr_sum_mean_scaled10k/sum(Expr_sum_mean_scaled10k))  %>% ungroup()
+```
+
+# Add ENTREZ ID
+
+```{R,message=FALSE}
+entrez_ensembl <- AnnotationDbi::toTable(org.Hs.eg.db::org.Hs.egENSEMBL)
+entrez_symbol <- AnnotationDbi::toTable(org.Hs.eg.db::org.Hs.egSYMBOL)
+entrez_ensembl <- inner_join(entrez_ensembl,entrez_symbol)
+```
+
+Only keep genes with a unique entrez and ensembl id.
+
+```{r,message=FALSE}
+entrez_ensembl_unique_genes_entrez <- entrez_ensembl %>% count(gene_id) %>% filter(n==1)
+entrez_ensembl_unique_genes_ens <- entrez_ensembl %>% count(ensembl_id) %>% filter(n==1)
+entrez_ensembl_unique_genes_symbol <- entrez_ensembl %>% count(symbol) %>% filter(n==1)
+
+entrez_ensembl <- filter(entrez_ensembl,gene_id%in%entrez_ensembl_unique_genes_entrez$gene_id & ensembl_id %in% entrez_ensembl_unique_genes_ens$ensembl_id & symbol %in% entrez_ensembl_unique_genes_symbol$symbol)
+colnames(entrez_ensembl) <- c("entrez_id","gene_id","Gene")
+```
+
+```{r}
+m2h <- read_tsv('../../00_Raw/m2h.txt') %>% select(entrez,musName) %>%  rename(entrez_id=entrez) %>% mutate(entrez_id=as.character(entrez_id))
+```
+
+```{r}
+entrez_ensembl <- inner_join(entrez_ensembl,m2h,by='entrez_id')
+```
+
+```{r}
+exp <- rename(exp,musName=Gene)
+```
+
+```{r}
+exp <- inner_join(exp,entrez_ensembl,by='musName')
+```
+
+### Write
+
+```{r}
+select(exp,Gene,gene_id,entrez_id,Lvl5,Expr_sum_mean_scaled10k) %>% 
+  spread(Lvl5,Expr_sum_mean_scaled10k) %>% 
+  write_tsv(gzfile("../../Data/AB_whole_cortex_hippocampus_mouse_2020.norm.txt.gz"))
+```
+
+```{r}
+select(exp,Gene,gene_id,entrez_id,Lvl5,spe_10k) %>% 
+  spread(Lvl5,spe_10k) %>% 
+  write_tsv(gzfile("../../../BrainRich2/Data/AB_whole_cortex_hippocampus_mouse_2020.norm.txt.gz"))
+```
+
+```{r}
+#select(exp,Gene,gene_id,entrez_id,Lvl5,Expr_sum_mean_scaled10k_log2) %>% 
+#  spread(Lvl5,Expr_sum_mean_scaled10k_log2) %>% 
+#  write_tsv(gzfile("../../Data/AB_human_m1_10x.log2.norm.txt.gz"))
+```

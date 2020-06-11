@@ -22,7 +22,7 @@ ui <- fluidPage(
         # Sidebar panel for inputs ----
         sidebarPanel(
             h4(strong("Gene Set Plots")),
-            h5("This Shiny app plots the expression of each gene in a gene set in the top N cell types."),
+            h5("This Shiny app plots the expression of each gene as a clustered heatmap (1st tab) or the expression of each gene in the top N cell types (2nd tab)"),
             br(),
             h5(strong("Please input a file with your gene list (first column).")),
             h5("The app works with ensembl, symbol or entrez gene ids."),
@@ -47,18 +47,23 @@ ui <- fluidPage(
             
             # Input: Select Dataset to use
             selectInput("select", label = h3("Select Dataset"), 
-                        choices = list("Zeisel et al. (2018) lvl2" = "Data/Zeisel.lvl2.1to1.norm.txt.gz",
-                                       "Zeisel et al. (2018) lvl3" = "Data/Zeisel.lvl3.1to1.norm.txt.gz",
-                                       "Zeisel et al. (2018) lvl4" = "Data/Zeisel.lvl4.1to1.norm.txt.gz",
-                                       "Zeisel et al. (2018) lvl5" = "Data/Zeisel.1to1.norm.txt.gz",
-                                       "Skene et al. (2018) lvl1" = "Data/Skene_lvl1.1to1.norm.txt.gz",
-                                       "Skene et al. (2018) lvl2" = "Data/Skene_lvl2.1to1.norm.txt.gz",
-                                       "Saunders et al. (2018) lvl1" = "Data/Saunders.lvl1.1to1.norm.txt.gz",
-                                       "Saunders et al. (2018) lvl2" = "Data/Saunders.lvl2.1to1.norm.txt.gz",
-                                       "Saunders et al. (2018) lvl3" = "Data/Saunders.lvl3.1to1.norm.txt.gz",
-                                       "Habib et al. (2017)" = "Data/Habib.norm.txt.gz",
-                                       "GTex v7" = "Data/GTEx.v7.all.norm.txt.gz", 
-                                       "GTex v8" = "Data/GTEx.v8.all.norm.txt.gz"),
+                        choices = list("Zeisel et al. (2018) lvl2 (Mouse)" = "Data/Zeisel.lvl2.1to1.norm.txt.gz",
+                                       "Zeisel et al. (2018) lvl3 (Mouse)" = "Data/Zeisel.lvl3.1to1.norm.txt.gz",
+                                       "Zeisel et al. (2018) lvl4 (Mouse)" = "Data/Zeisel.lvl4.1to1.norm.txt.gz",
+                                       "Zeisel et al. (2018) lvl5 (Mouse)" = "Data/Zeisel.1to1.norm.txt.gz",
+                                       "Skene et al. (2018) lvl1 (Mouse)" = "Data/Skene_lvl1.1to1.norm.txt.gz",
+                                       "Skene et al. (2018) lvl2 (Mouse)" = "Data/Skene_lvl2.1to1.norm.txt.gz",
+                                       "Saunders et al. (2018) lvl1 (Mouse)" = "Data/Saunders.lvl1.1to1.norm.txt.gz",
+                                       "Saunders et al. (2018) lvl2 (Mouse)" = "Data/Saunders.lvl2.1to1.norm.txt.gz",
+                                       "Saunders et al. (2018) lvl3 (Mouse)" = "Data/Saunders.lvl3.1to1.norm.txt.gz",
+                                       "Habib et al. (2017) (Human)" = "Data/Habib.norm.txt.gz",
+                                       "GTex v7 (Human tissues)" = "Data/GTEx.v7.all.norm.txt.gz", 
+                                       "GTex v8 (Human tissues)" = "Data/GTEx.v8.all.norm.txt.gz",
+                                       "Allen Brain M1 (Human)" = "Data/AB_human_m1_10x.norm.txt.gz",
+                                       "Allen Brain Multiple Cortical areas (Human)" = "Data/AB_multiple_cortical_areas_smartseq2019.norm.txt.gz",
+                                       "Allen Brain MTG (Human)" = "Data/AB_mtg2018.norm.txt.gz",
+                                       "Allen Brain Whole Cortex + hippocampus (Mouse)" = "Data/AB_whole_cortex_hippocampus_mouse_2020.norm.txt.gz"
+                        ),
                         selected = "Data/Zeisel.lvl4.1to1.norm.txt.gz"),
         ),
         
@@ -104,6 +109,10 @@ ui <- fluidPage(
                                      h5(a("Saunders et al. 2018",href="https://www.sciencedirect.com/science/article/pii/S0092867418309553")),
                                      h5(a("GTEx v7",href="https://www.nature.com/articles/nature24277")),
                                      h5(a("GTEx v8",href="https://www.biorxiv.org/content/10.1101/787903v1")),
+                                     h5(a("Allen Brain M1 (Human)",href="https://portal.brain-map.org/atlases-and-data/rnaseq/human-m1-10x")),
+                                     h5(a("Allen Brain Multiple Cortical areas (Human)",href="https://portal.brain-map.org/atlases-and-data/rnaseq/human-multiple-cortical-areas-smart-seq")),
+                                     h5(a("Allen MTG (Human)",href="https://portal.brain-map.org/atlases-and-data/rnaseq/human-mtg-smart-seq")),
+                                     h5(a("Allen Brain Whole Cortex + hippocampus (Mouse)",href="https://portal.brain-map.org/atlases-and-data/rnaseq/mouse-whole-cortex-and-hippocampus-smart-seq")),
                                      h3("Code:"),
                                      h5(a("Github",href="https://github.com/jbryois/GeneSetPloter"))
                                  )
