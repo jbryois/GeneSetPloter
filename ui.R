@@ -64,7 +64,7 @@ ui <- fluidPage(
                                        "Allen Brain MTG (Human)" = "Data/AB_mtg2018.norm.txt.gz",
                                        "Allen Brain Whole Cortex + hippocampus (Mouse)" = "Data/AB_whole_cortex_hippocampus_mouse_2020.norm.txt.gz"
                         ),
-                        selected = "Data/Zeisel.lvl4.1to1.norm.txt.gz"),
+                        selected = "Data/Zeisel.lvl4.1to1.norm.txt.gz")
         ),
         
         # Main panel for displaying outputs ----
@@ -76,29 +76,29 @@ ui <- fluidPage(
                                  mainPanel(
                                      h5("Heatmap of the expression of each gene in the gene set in all cell types (z-scaling per gene)"),
                                      column(4,
-                                            numericInput("width_hm", label = h3("Plot Width"), value = 16),
+                                            numericInput("width_hm", label = h3("Plot Width"), value = 16)
                                      ),
                                      column(4,
-                                            numericInput("height_hm", label = h3("Plot Height"), value = 10),
+                                            numericInput("height_hm", label = h3("Plot Height"), value = 10)
                                      ),
                                      downloadButton('save_heatmap',label = "Save Plot"),
                                      plotOutput("heatmap")
-                                 ), 
+                                 ) 
                         ),
                         tabPanel("Gene Set Plot", fluid = TRUE,
                                 mainPanel(
                                     h5("Plots expression of each gene in the gene set in the top N cell types/tissues"),
                                     column(4,
-                                           numericInput("num", label = h3("Number of cell types"), value = 15),
+                                           numericInput("num", label = h3("Number of cell types"), value = 15)
                                     ),
                                     column(4,
-                                           numericInput("width", label = h3("Plot Width"), value = 30),
+                                           numericInput("width", label = h3("Plot Width"), value = 30)
                                     ),
                                     column(4,
-                                           numericInput("height", label = h3("Plot Height"), value = 40),
+                                           numericInput("height", label = h3("Plot Height"), value = 40)
                                     ),
                                     downloadButton('save_plot',label = "Save Plot")
-                                ), 
+                                ) 
                         ),
                         tabPanel("References", fluid = TRUE,
                                  mainPanel(
@@ -117,7 +117,7 @@ ui <- fluidPage(
                                      h5(a("Github",href="https://github.com/jbryois/GeneSetPloter"))
                                  )
                         )
-            ),
+            )
         )
     )
 )
